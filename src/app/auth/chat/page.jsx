@@ -343,6 +343,11 @@ export const Index = () => {
                                                 <Text fontSize="12px" color="gray.500" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" maxWidth="150px">
                                                     {chat.messages[chat.messages.length - 1].text}
                                                 </Text>
+                                                {chat.unrepliedCount > 0 && (
+                                                    <Tag size="sm" display="flex" alignItems="center" justifyContent="center" textAlign="center" bgColor="blue.600" fontSize="10px" fontWeight={400} color="white" borderRadius="full">
+                                                        {chat.unrepliedCount}
+                                                    </Tag>
+                                                )}
                                             </HStack>
                                             <Tag w="auto" h="20px" justifyContent="center" size='xs' bgColor={chat.marketplace.color} borderRadius='md' gap={2} px={2} py={1}>
                                                 <Image src={chat.marketplace.icon} />
