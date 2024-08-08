@@ -43,50 +43,89 @@ export const Index = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [chatData, setChatData] = useState([
         {
-        id: 1,
-        title: "Dan Abramov",
-        timestamp: "Today",
-        marketplace: {
-            name: "Tokopedia",
-            logo: TokpedLogo,
-            icon: TokpedIcon,
-            color: "#D9F2E3"
-        },
-        tag: {
-            name: "Beauty Lovers",
-        },
-        avatar: "https://bit.ly/dan-abramov",
-        messages: [
-            { type: "received", text: "Is the product available?", timestamp: "Yesterday" },
-        ],
-        unreadCount: 1,
+            id: 1,
+            title: "Dan Abramov",
+            timestamp: "Today",
+            marketplace: {
+                name: "Tokopedia",
+                logo: TokpedLogo,
+                icon: TokpedIcon,
+                color: "#D9F2E3"
+            },
+            tag: {
+                name: "Beauty Lovers",
+            },
+            avatar: "https://bit.ly/dan-abramov",
+            messages: [
+                { type: "received", text: "Is the product available?", timestamp: "Yesterday" },
+            ],
+            unrepliedCount: 1,
         },
         {
-        id: 2,
-        title: "Ryan Florence",
-        timestamp: "Yesterday",
-        marketplace: {
-            name: "Shopee",
-            logo: ShopeeLogo,
-            icon: ShopeeIcon,
-            color: "orange.100"
+            id: 2,
+            title: "Ryan Florence",
+            timestamp: "Yesterday",
+            marketplace: {
+                name: "Shopee",
+                logo: ShopeeLogo,
+                icon: ShopeeIcon,
+                color: "orange.100"
+            },
+            tag: {
+                name: "Makeuppucino",
+            },
+            avatar: "https://bit.ly/ryan-florence",
+            messages: [
+                { type: "received", text: "Hello there", timestamp: "Yesterday" },
+                { type: "sent", text: "Hi!", timestamp: "Yesterday" },
+                { type: "received", text: "I just placed an order. When will it be shipped?", timestamp: "Just now" },
+            ],
+            unrepliedCount: 1,
         },
-        tag: {
-            name: "Makeuppucino",
+        {
+            id: 3,
+            title: "Segun Adebayo",
+            timestamp: "Today",
+            marketplace: {
+                name: "Tokopedia",
+                logo: TokpedLogo,
+                icon: TokpedIcon,
+                color: "#D9F2E3"
+            },
+            tag: {
+                name: "Beauty Lovers",
+            },
+            avatar: "https://bit.ly/sage-adebayo",
+            messages: [
+                { type: "received", text: "your products is cool!", timestamp: "Yesterday" },
+            ],
+            unrepliedCount: 1,
         },
-        avatar: "https://bit.ly/ryan-florence",
-        messages: [
-            { type: "received", text: "Hello there", timestamp: "Yesterday" },
-            { type: "sent", text: "Hi!", timestamp: "Yesterday" },
-            { type: "received", text: "I just placed an order. When will it be shipped?", timestamp: "Just now" },
-        ],
-        unreadCount: 1,
+        {
+            id: 4,
+            title: "Prosper Otemuyiwa",
+            timestamp: "Yesterday",
+            marketplace: {
+                name: "Shopee",
+                logo: ShopeeLogo,
+                icon: ShopeeIcon,
+                color: "orange.100"
+            },
+            tag: {
+                name: "Makeuppucino",
+            },
+            avatar: "https://bit.ly/prosper-baba",
+            messages: [
+                { type: "received", text: "Hello", timestamp: "Yesterday" },
+                { type: "sent", text: "Hi! Anything I can help? ", timestamp: "Yesterday" },
+            ],
+            unrepliedCount: 0,
         },
     ]);
 
     const globalChatData = {
-        totalUnread: chatData.reduce((sum, chat) => sum + chat.unreadCount, 0),
-        totalReplied: 0,
+        totalUnreplied: chatData.reduce((sum, chat) => sum + chat.unrepliedCount, 0),
+        totalReplied: chatData.filter(chat => chat.unrepliedCount === 0).length,
         totalChats: chatData.length,
     };
 
@@ -97,15 +136,24 @@ export const Index = () => {
 
     const selectChat = (id) => {
         setChatData((prevData) =>
-            prevData.map((chat) =>
-                chat.id === id ? { ...chat, unreadCount: 0 } : chat
-            )
+            prevData.map((chat) => {
+                if (chat.id === id) {
+                    const lastMessage = chat.messages[chat.messages.length - 1];
+                    return {
+                        ...chat,
+                        unrepliedCount: lastMessage.type === "sent" ? 0 : chat.unrepliedCount,
+                    };
+                }
+                return chat;
+            })
         );
         setSelectedChatId(id);
     };
 
     const sendMessage = () => {
         if (inputValue.trim() === "") return;
+
+        const timestamp = new Date().toLocaleTimeString();
 
         setChatData((prevData) =>
             prevData.map((chat) =>
@@ -114,8 +162,9 @@ export const Index = () => {
                           ...chat,
                           messages: [
                               ...chat.messages,
-                              { type: "sent", text: inputValue, timestamp: new Date().toLocaleTimeString() },
+                              { type: "sent", text: inputValue, timestamp },
                           ],
+                          unrepliedCount: chat.unrepliedCount > 0 ? 0 : chat.unrepliedCount,
                       }
                     : chat
             )
@@ -165,26 +214,34 @@ export const Index = () => {
                 <Stack w="full">
                     <Tabs size="md">
                         <TabList w="full" alignItems="center">
-                            <Tab px={0} py={2} w={1/3} fontSize={'12px'} fontWeight={600}>
+                            <Tab px={0} py={2} w={1/3} fontSize={'12px'} fontWeight={600} isDisabled={globalChatData.totalUnreplied === 0}>
                                 <HStack gap={1} justifyContent="flex-end">
                                     <Text>Perlu balas</Text>
-                                    <Tag size="sm" display="flex" alignItems="center" justifyContent="center" textAlign="center" bgColor="blue.600" fontSize="8px" fontWeight={400} color="white" borderRadius="full">
-                                        {globalChatData.totalUnread}
-                                    </Tag>
+                                    {globalChatData.totalUnreplied > 0 && (
+                                        <Tag size="sm" display="flex" alignItems="center" justifyContent="center" textAlign="center" bgColor="blue.600" fontSize="8px" fontWeight={400} color="white" borderRadius="full">
+                                            {globalChatData.totalUnreplied}
+                                        </Tag>
+                                    )}
                                 </HStack>
-
                             </Tab>
-                            <Tab px={0} w={1/3} fontSize={'12px'} fontWeight={600} isDisabled>Terbalas</Tab>
-                            <Tab px={0} w={1/3} fontSize={'12px'} fontWeight={600} isDisabled>Semua chat</Tab>
+                            <Tab px={0} w={1/3} fontSize={'12px'} fontWeight={600} isDisabled={globalChatData.totalReplied === 0}>
+                                <HStack gap={1} justifyContent="flex-end">
+                                        <Text>Terbalas</Text>
+                                </HStack>
+                            </Tab>
+                            <Tab px={0} w={1/3} fontSize={'12px'} fontWeight={600}>
+                                <HStack gap={1} justifyContent="flex-end">
+                                    <Text>Semua chat</Text>
+                                </HStack>
+                            </Tab>
                         </TabList>
                         <TabPanels>
-                            <TabPanel w="full" p={0}>
-                                {chatData.map((chat) => (
+                            <TabPanel w="full" p={0} overflowY="auto" maxH="67vh">
+                                {chatData.filter(chat => chat.unrepliedCount > 0).map((chat) => (
                                     <Box
                                         key={chat.id}
                                         w="full"
                                         borderBottomWidth="1px"
-                                        overflow="hidden"
                                         px={4}
                                         py={4}
                                         right={0}
@@ -199,28 +256,102 @@ export const Index = () => {
                                     >
                                         <Avatar w="40px" h="40px" name={chat.title} src={chat.avatar} />
                                         <VStack w="full" align="start" ml={3} spacing={2} p={0}>
-                                        <HStack w="full" justifyContent="space-between">
-                                            <Text fontSize="14px" fontWeight="bold">{chat.title}</Text>
-                                            <Text fontSize="10px" color="gray.500">{chat.timestamp}</Text>
-                                        </HStack>
-                                        <HStack w="full" justifyContent="space-between">
-                                            <Text fontSize="12px" color="gray.500" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" maxWidth="150px">{chat.messages[chat.messages.length - 1].text}</Text>
-                                            {chat.unreadCount > 0 && (
-                                                <Tag size="sm" display="flex" alignItems="center" justifyContent="center" textAlign="center" bgColor="blue.600" fontSize="10px" fontWeight={400} color="white" borderRadius="full">
-                                                    {chat.unreadCount}
-                                                </Tag>
-                                            )}
-                                        </HStack>
-                                        <Tag w="auto" h="20px" justifyContent="center" size='xs' bgColor={chat.marketplace.color} borderRadius='md' gap={2} px={2} py={1}>
-                                            <Image src={chat.marketplace.icon} />
-                                            <TagLabel color="black" fontSize="10px" fontWeight={500}>{chat.tag.name}</TagLabel>
-                                        </Tag>
+                                            <HStack w="full" justifyContent="space-between">
+                                                <Text fontSize="14px" fontWeight="bold">{chat.title}</Text>
+                                                <Text fontSize="10px" color="gray.500">{chat.timestamp}</Text>
+                                            </HStack>
+                                            <HStack w="full" justifyContent="space-between">
+                                                <Text fontSize="12px" color="gray.500" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" maxWidth="150px">
+                                                    {chat.messages[chat.messages.length - 1].text}
+                                                </Text>
+                                                {chat.unrepliedCount > 0 && (
+                                                    <Tag size="sm" display="flex" alignItems="center" justifyContent="center" textAlign="center" bgColor="blue.600" fontSize="10px" fontWeight={400} color="white" borderRadius="full">
+                                                        {chat.unrepliedCount}
+                                                    </Tag>
+                                                )}
+                                            </HStack>
+                                            <Tag w="auto" h="20px" justifyContent="center" size='xs' bgColor={chat.marketplace.color} borderRadius='md' gap={2} px={2} py={1}>
+                                                <Image src={chat.marketplace.icon} />
+                                                <TagLabel color="black" fontSize="10px" fontWeight={500}>{chat.tag.name}</TagLabel>
+                                            </Tag>
                                         </VStack>
                                     </Box>
                                 ))}
                             </TabPanel>
-                            <TabPanel>ini content terbalas</TabPanel>
-                            <TabPanel>ini content semua chat</TabPanel>
+                            <TabPanel w="full" p={0} overflowY="auto" maxH="67vh">
+                                {chatData.filter(chat => chat.unrepliedCount === 0).map((chat) => (
+                                    <Box
+                                        key={chat.id}
+                                        w="full"
+                                        borderBottomWidth="1px"
+                                        px={4}
+                                        py={4}
+                                        right={0}
+                                        display="flex"
+                                        alignItems="flex-start"
+                                        onClick={() => {
+                                            selectChat(chat.id);
+                                        }}
+                                        cursor="pointer"
+                                        _hover={{ bgColor: "#F9F9FA" }}
+                                        _active={{ bgColor: "#F9F9FA" }}
+                                    >
+                                        <Avatar w="40px" h="40px" name={chat.title} src={chat.avatar} />
+                                        <VStack w="full" align="start" ml={3} spacing={2} p={0}>
+                                            <HStack w="full" justifyContent="space-between">
+                                                <Text fontSize="14px" fontWeight="bold">{chat.title}</Text>
+                                                <Text fontSize="10px" color="gray.500">{chat.timestamp}</Text>
+                                            </HStack>
+                                            <HStack w="full" justifyContent="space-between">
+                                                <Text fontSize="12px" color="gray.500" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" maxWidth="150px">
+                                                    {chat.messages[chat.messages.length - 1].text}
+                                                </Text>
+                                            </HStack>
+                                            <Tag w="auto" h="20px" justifyContent="center" size='xs' bgColor={chat.marketplace.color} borderRadius='md' gap={2} px={2} py={1}>
+                                                <Image src={chat.marketplace.icon} />
+                                                <TagLabel color="black" fontSize="10px" fontWeight={500}>{chat.tag.name}</TagLabel>
+                                            </Tag>
+                                        </VStack>
+                                    </Box>
+                                ))}
+                            </TabPanel>
+                            <TabPanel w="full" p={0} overflowY="auto" maxH="67vh">
+                                {chatData.map((chat) => (
+                                    <Box
+                                        key={chat.id}
+                                        w="full"
+                                        borderBottomWidth="1px"
+                                        px={4}
+                                        py={4}
+                                        right={0}
+                                        display="flex"
+                                        alignItems="flex-start"
+                                        onClick={() => {
+                                            selectChat(chat.id);
+                                        }}
+                                        cursor="pointer"
+                                        _hover={{ bgColor: "#F9F9FA" }}
+                                        _active={{ bgColor: "#F9F9FA" }}
+                                    >
+                                        <Avatar w="40px" h="40px" name={chat.title} src={chat.avatar} />
+                                        <VStack w="full" align="start" ml={3} spacing={2} p={0}>
+                                            <HStack w="full" justifyContent="space-between">
+                                                <Text fontSize="14px" fontWeight="bold">{chat.title}</Text>
+                                                <Text fontSize="10px" color="gray.500">{chat.timestamp}</Text>
+                                            </HStack>
+                                            <HStack w="full" justifyContent="space-between">
+                                                <Text fontSize="12px" color="gray.500" overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" maxWidth="150px">
+                                                    {chat.messages[chat.messages.length - 1].text}
+                                                </Text>
+                                            </HStack>
+                                            <Tag w="auto" h="20px" justifyContent="center" size='xs' bgColor={chat.marketplace.color} borderRadius='md' gap={2} px={2} py={1}>
+                                                <Image src={chat.marketplace.icon} />
+                                                <TagLabel color="black" fontSize="10px" fontWeight={500}>{chat.tag.name}</TagLabel>
+                                            </Tag>
+                                        </VStack>
+                                    </Box>
+                                ))}
+                            </TabPanel>
                         </TabPanels>
                     </Tabs>
                 </Stack>
