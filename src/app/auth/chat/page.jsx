@@ -38,65 +38,100 @@ import TokpedLogo from '../../../assets/tokopedia-logo-text.png';
 import ShopeeIcon from '../../../assets/shopee-logo.png';
 import ShopeeLogo from '../../../assets/shopee-logo-text.png';
 
-const chatData = [
-    {
-      id: 1,
-      title: "Dan Abramov",
-      timestamp: "Today",
-      marketplace: {
-        name: "Tokopedia",
-        logo: TokpedLogo,
-        icon: TokpedIcon,
-        color: "#D9F2E3"
-      },
-      tag: {
-        name: "Beauty Lovers",
-      },
-      avatar: "https://bit.ly/dan-abramov",
-      messages: [
-        { type: "received", text: "Is the product available?", timestamp: "Yesterday" },
-      ],
-      unreadCount: 1,
-    },
-    {
-      id: 2,
-      title: "Ryan Florence",
-      timestamp: "Yesterday",
-      marketplace: {
-        name: "Shopee",
-        logo: ShopeeLogo,
-        icon: ShopeeIcon,
-        color: "orange.100"
-      },
-      tag: {
-        name: "Makeuppucino",
-      },
-      avatar: "https://bit.ly/ryan-florence",
-      messages: [
-        { type: "received", text: "Hello there", timestamp: "Yesterday" },
-        { type: "sent", text: "Hi!", timestamp: "Yesterday" },
-        { type: "received", text: "I just placed an order. When will it be shipped?", timestamp: "Just now" },
-      ],
-      unreadCount: 1,
-    },
-  ];
-
-const globalChatData = {
-    totalUnread: chatData.reduce((sum, chat) => sum + chat.unreadCount, 0),
-    totalReplied: 0,
-    totalChats: chatData.length,
-};
 
 export const Index = () => {
-      const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-      const [selectedChatId, setSelectedChatId] = useState(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [chatData, setChatData] = useState([
+        {
+        id: 1,
+        title: "Dan Abramov",
+        timestamp: "Today",
+        marketplace: {
+            name: "Tokopedia",
+            logo: TokpedLogo,
+            icon: TokpedIcon,
+            color: "#D9F2E3"
+        },
+        tag: {
+            name: "Beauty Lovers",
+        },
+        avatar: "https://bit.ly/dan-abramov",
+        messages: [
+            { type: "received", text: "Is the product available?", timestamp: "Yesterday" },
+        ],
+        unreadCount: 1,
+        },
+        {
+        id: 2,
+        title: "Ryan Florence",
+        timestamp: "Yesterday",
+        marketplace: {
+            name: "Shopee",
+            logo: ShopeeLogo,
+            icon: ShopeeIcon,
+            color: "orange.100"
+        },
+        tag: {
+            name: "Makeuppucino",
+        },
+        avatar: "https://bit.ly/ryan-florence",
+        messages: [
+            { type: "received", text: "Hello there", timestamp: "Yesterday" },
+            { type: "sent", text: "Hi!", timestamp: "Yesterday" },
+            { type: "received", text: "I just placed an order. When will it be shipped?", timestamp: "Just now" },
+        ],
+        unreadCount: 1,
+        },
+    ]);
 
-      const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
+    const globalChatData = {
+        totalUnread: chatData.reduce((sum, chat) => sum + chat.unreadCount, 0),
+        totalReplied: 0,
+        totalChats: chatData.length,
+    };
 
+    const [selectedChatId, setSelectedChatId] = useState(null);
+    const [inputValue, setInputValue] = useState("");
 
-      const selectChat = (id) => setSelectedChatId(id);
+    const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
 
-      const selectedChat = chatData.find((chat) => chat.id === selectedChatId);
+    const selectChat = (id) => {
+        setChatData((prevData) =>
+            prevData.map((chat) =>
+                chat.id === id ? { ...chat, unreadCount: 0 } : chat
+            )
+        );
+        setSelectedChatId(id);
+    };
+
+    const sendMessage = () => {
+        if (inputValue.trim() === "") return;
+
+        setChatData((prevData) =>
+            prevData.map((chat) =>
+                chat.id === selectedChatId
+                    ? {
+                          ...chat,
+                          messages: [
+                              ...chat.messages,
+                              { type: "sent", text: inputValue, timestamp: new Date().toLocaleTimeString() },
+                          ],
+                      }
+                    : chat
+            )
+        );
+
+        setInputValue("");
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+        }
+    };
+
+    const selectedChat = chatData.find((chat) => chat.id === selectedChatId);
 
 
     return (
@@ -251,7 +286,7 @@ export const Index = () => {
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 16C12 15.4477 12.4477 15 13 15C13.5523 15 14 15.4477 14 16V25C14 27.8477 16.1523 30 19 30C21.8477 30 24 27.8477 24 25V13C24 11.3523 22.6477 10 21 10C19.3523 10 18 11.3523 18 13V25C18 25.6477 18.3523 26 19 26C19.6477 26 20 25.6477 20 25V16C20 15.4477 20.4477 15 21 15C21.5523 15 22 15.4477 22 16V25C22 26.7523 20.7523 28 19 28C17.2477 28 16 26.7523 16 25V13C16 10.2477 18.2477 8 21 8C23.7523 8 26 10.2477 26 13V25C26 28.9523 22.9523 32 19 32C15.0477 32 12 28.9523 12 25V16Z" fill="#2F3941"/>
                                 </svg>
                             </Box>
-                            <Input variant='outline' borderRadius="full" borderColor="gray.500" placeholder='Type a message' />
+                            <Input variant='outline' borderRadius="full" borderColor="gray.500" placeholder='Type a message' value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} />
                         </Box>
                         </>
                     ) : (
