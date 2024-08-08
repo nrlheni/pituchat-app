@@ -31,8 +31,3 @@ PituChat is a web apps (UI) for Chat Aggregator from several e-commerce marketpl
     ```
 
     The app will be available at `http://localhost:3000`.
-
-## Usage
-
-1. **Explore Chats**: The left pane displays a list of chats. Click on any chat to view its messages.
-2. **View Messages**: The right pane shows messages for the selected chat. Messages are displayed with avatars and timestamps.
